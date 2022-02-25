@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Run unit tests
-      working-directory: ./tests/unit
+      working-directory: tests/unit
       run: |
           pip install -r ../requirements.txt
           python -m pytest
