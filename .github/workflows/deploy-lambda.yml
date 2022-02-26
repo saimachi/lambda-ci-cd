@@ -8,7 +8,9 @@ env:
   AWS_REGION: us-west-1
 
 jobs:
-  build:
+  # TODO: Separate setup, building, testing, and deployment steps into multiple jobs
+  # The issue is that data is not persisted between jobs
+  build-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -28,3 +30,5 @@ jobs:
         run: |
             pip install -r ../requirements.txt
             python -m pytest
+      - name: Deploy to AWS
+        run: sam deploy
