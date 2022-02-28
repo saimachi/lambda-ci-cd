@@ -17,6 +17,11 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: '3.8'
+      - name: Run unit tests
+        working-directory: tests/unit
+        run: |
+            pip install -r ../requirements.txt
+            python -m pytest
       - uses: aws-actions/setup-sam@v1
       - uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -25,19 +30,13 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - name: Build SAM app
         run: sam build --use-container
-      - name: Run unit tests
-        working-directory: tests/unit
-        run: |
-            pip install -r ../requirements.txt
-            python -m pytest
+      - name: ZIP build files
+        run: zip -r build.zip .aws-sam/build samconfig-staging.toml samconfig-dev.toml
       - name: Upload build artifacts to persistent storage
         uses: actions/upload-artifact@v2
         with:
           name: built-function
-          path: |
-            .aws-sam/build
-            samconfig-staging.toml
-            samconfig-prod.toml
+          path: build.zip
   # Note that AWS credentials can be set in the environment as well (e.g. separate staging and production AWS accounts)
   # TODO: Run integration tests
   deploy-staging:
@@ -49,6 +48,8 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: built-function
+      - name: Unzip build files
+        run: unzip build.zip
       - uses: aws-actions/setup-sam@v1
       - uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -66,6 +67,8 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: built-function
+      - name: Unzip build files
+        run: unzip build.zip
       - uses: aws-actions/setup-sam@v1
       - uses: aws-actions/configure-aws-credentials@v1
         with:
