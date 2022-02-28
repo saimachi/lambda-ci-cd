@@ -31,7 +31,7 @@ jobs:
       - name: Build SAM app
         run: sam build --use-container
       - name: ZIP build files
-        run: zip -r build.zip .aws-sam/build samconfig-staging.toml samconfig-dev.toml
+        run: zip -r build.zip .aws-sam/build samconfig-staging.toml samconfig-prod.toml
       - name: Upload build artifacts to persistent storage
         uses: actions/upload-artifact@v2
         with:

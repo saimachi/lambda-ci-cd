@@ -5,6 +5,14 @@ Description: >
 
   Sample SAM Template for lambda-ci-cd-test
 
+Parameters:
+  environment:
+    Type: String
+    Default: staging
+    AllowedValues:
+      - staging
+      - production
+
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
@@ -14,6 +22,7 @@ Resources:
   HelloWorldFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
+      FunctionName: !Sub lambda-ci-cd-${environment}-skm
       CodeUri: hello_world/
       Handler: app.lambda_handler
       Runtime: python3.8
