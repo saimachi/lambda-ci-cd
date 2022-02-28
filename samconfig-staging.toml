@@ -9,4 +9,4 @@ region = "us-west-1"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM"
 image_repositories = []
-environment = "staging"
+parameter_overrides = "environment=staging"
