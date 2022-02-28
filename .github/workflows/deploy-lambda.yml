@@ -6,12 +6,10 @@ on:
 
 env:
   AWS_REGION: us-west-1
-  DEV_STACK_NAME: lambda-ci-cd-test-dev
+  STAGING_STACK_NAME: lambda-ci-cd-test-staging
   PROD_STACK_NAME: lambda-ci-cd-test-prod
 
 jobs:
-  # TODO: Separate setup, building, testing, and deployment steps into multiple jobs
-  # The issue is that data is not persisted between jobs
   build-test:
     runs-on: ubuntu-latest
     steps:
@@ -32,12 +30,6 @@ jobs:
         run: |
             pip install -r ../requirements.txt
             python -m pytest
-            - name: Run unit tests
-      - name: Run integration tests
-        working-directory: tests/integration
-        run: |
-            export AWS_SAM_STACK_NAME=${{ env.DEV_STACK_NAME }}
-            python -m pytest
       - name: Upload build artifacts to persistent storage
         uses: actions/upload-artifact@v2
         with:
@@ -46,6 +38,8 @@ jobs:
             .aws-sam/build
             samconfig-staging.toml
             samconfig-prod.toml
+  # Note that AWS credentials can be set in the environment as well (e.g. separate staging and production AWS accounts)
+  # TODO: Run integration tests
   deploy-staging:
     runs-on: ubuntu-latest
     environment: staging
@@ -55,6 +49,12 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: built-function
+      - uses: aws-actions/setup-sam@v1
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
       - name: Deploy to AWS staging environment
         run: sam deploy --config-file samconfig-staging.toml
   deploy-prod:
@@ -66,5 +66,11 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: built-function
+      - uses: aws-actions/setup-sam@v1
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
       - name: Deploy to AWS production environment
         run: sam deploy --config-file samconfig-prod.toml
