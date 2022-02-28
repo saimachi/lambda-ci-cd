@@ -6,11 +6,13 @@ on:
 
 env:
   AWS_REGION: us-west-1
+  DEV_STACK_NAME: lambda-ci-cd-test-dev
+  PROD_STACK_NAME: lambda-ci-cd-test-prod
 
 jobs:
   # TODO: Separate setup, building, testing, and deployment steps into multiple jobs
   # The issue is that data is not persisted between jobs
-  build-deploy:
+  build-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -30,5 +32,37 @@ jobs:
         run: |
             pip install -r ../requirements.txt
             python -m pytest
-      - name: Deploy to AWS
-        run: sam deploy
+            - name: Run unit tests
+      - name: Run integration tests
+        working-directory: tests/integration
+        run: |
+            export AWS_SAM_STACK_NAME=${{ env.DEV_STACK_NAME }}
+            python -m pytest
+      - name: Upload build artifacts to persistent storage
+        uses: actions/upload-artifact@v2
+        with:
+          name: built-function
+          path: |
+            .aws-sam/build
+            samconfig-staging.toml
+            samconfig-prod.toml
+  deploy-staging:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Download build artifacts from persistent storage
+        uses: actions/download-artifact@v2
+        with:
+          name: built-function
+      - name: Deploy to AWS staging environment
+        run: sam deploy --config-file samconfig-staging.toml
+  deploy-prod:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Download build artifacts from persistent storage
+        uses: actions/download-artifact@v2
+        with:
+          name: built-function
+      - name: Deploy to AWS production environment
+        run: sam deploy --config-file samconfig-prod.toml
