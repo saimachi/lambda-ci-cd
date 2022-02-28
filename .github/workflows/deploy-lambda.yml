@@ -57,7 +57,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
       - name: Deploy to AWS staging environment
-        run: sam deploy --config-file samconfig-staging.toml
+        run: sam deploy --config-file samconfig-staging.toml --no-fail-on-empty-changeset
   deploy-prod:
     runs-on: ubuntu-latest
     environment: production
@@ -76,4 +76,4 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
       - name: Deploy to AWS production environment
-        run: sam deploy --config-file samconfig-prod.toml
+        run: sam deploy --config-file samconfig-prod.toml --no-fail-on-empty-changeset
