@@ -77,3 +77,5 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - name: Deploy to AWS production environment
         run: sam deploy --config-file samconfig-prod.toml --no-fail-on-empty-changeset
+      - name: Create new version
+        run: aws lambda publish-version --function-name lambda-ci-cd-production-skm
