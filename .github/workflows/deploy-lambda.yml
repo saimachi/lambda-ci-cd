@@ -82,4 +82,6 @@ jobs:
       - name: Deploy to AWS production environment
         run: sam deploy --config-file samconfig-prod.toml --no-fail-on-empty-changeset
       - name: Create new version
-        run: aws lambda publish-version --function-name lambda-ci-cd-production-skm
+        run: |
+          version=$(aws lambda publish-version --function-name lambda-ci-cd-production-skm --query Version --output text)
+          aws lambda update-alias --function-name lambda-ci-cd-production-skm --name PROD --function-version $version
