@@ -1,6 +1,6 @@
 on:
   release:
-    types: [published, deleted]
+    types: [created, deleted]
   workflow_dispatch:
 
 env:
@@ -16,7 +16,6 @@ jobs:
       - name: Get latest release
         uses: dsaltares/fetch-gh-release-asset@0.0.7
         with:
-          github_token: ${{ github.token }}
           file: build.zip
       - name: Unzip release files
         run: unzip build.zip
