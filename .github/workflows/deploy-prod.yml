@@ -10,19 +10,15 @@ env:
 
 jobs:
   deploy-prod:
-    if: ${{ false }}
     runs-on: ubuntu-latest
     environment: production
     steps:
       - name: Get latest release
-        uses: thebritican/fetch-latest-release@v1
+        uses: dsaltares/fetch-gh-release-asset@0.0.7
         with:
           github_token: ${{ github.token }}
-      - name: Download build artifacts from persistent storage
-        uses: actions/download-artifact@v2
-        with:
-          name: built-function
-      - name: Unzip build files
+          file: build.zip
+      - name: Unzip release files
         run: unzip build.zip
       - uses: aws-actions/setup-sam@v1
       - uses: aws-actions/configure-aws-credentials@v1
@@ -32,7 +28,3 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - name: Deploy to AWS production environment
         run: sam deploy --config-file samconfig-prod.toml --no-fail-on-empty-changeset
-      - name: Create new version
-        run: |
-          version=$(aws lambda publish-version --function-name lambda-ci-cd-production-skm --query Version --output text)
-          aws lambda update-alias --function-name lambda-ci-cd-production-skm --name PROD --function-version $version
