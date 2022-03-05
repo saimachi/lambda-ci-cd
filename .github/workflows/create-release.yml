@@ -61,26 +61,21 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - name: Deploy to AWS staging environment
         run: sam deploy --config-file samconfig-staging.toml --no-fail-on-empty-changeset
-  deploy-prod:
+  create-release:
     runs-on: ubuntu-latest
-    environment: production
     needs: deploy-staging
     steps:
       - name: Download build artifacts from persistent storage
         uses: actions/download-artifact@v2
         with:
           name: built-function
-      - name: Unzip build files
-        run: unzip build.zip
-      - uses: aws-actions/setup-sam@v1
-      - uses: aws-actions/configure-aws-credentials@v1
+      - name: Push tag to current version
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.0
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-      - name: Deploy to AWS production environment
-        run: sam deploy --config-file samconfig-prod.toml --no-fail-on-empty-changeset
-      - name: Create new version
-        run: |
-          version=$(aws lambda publish-version --function-name lambda-ci-cd-production-skm --query Version --output text)
-          aws lambda update-alias --function-name lambda-ci-cd-production-skm --name PROD --function-version $version
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create release on GitHub
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          bodyFile: build.zip
