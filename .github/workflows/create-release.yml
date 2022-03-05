@@ -78,4 +78,4 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ steps.tag_version.outputs.new_tag }}
-          bodyFile: build.zip
+          artifacts: build.zip
